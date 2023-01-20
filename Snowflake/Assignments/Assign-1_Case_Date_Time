@@ -1,0 +1,81 @@
+--------------------------SNOWFLAKE ASSIGNMENT 01--------------------------------------
+USE WAREHOUSE AKD_WAREHOUSE;
+USE DATABASE AK_DATABASE;
+----Load the given dataset into snowflake with a primary key to Order Date column-------------------
+CREATE OR REPLACE TABLE AK_SALES
+(
+    ORDER_ID STRING,
+    ORDER_DATE STRING PRIMARY KEY,
+    SHIP_DATE STRING,
+    SHIP_MODE VARCHAR(40),
+    CUSTOMER_NAME VARCHAR(25),
+    SEGMENT VARCHAR(40),
+    STATE VARCHAR(40),
+    COUNTRY VARCHAR(50),
+    MARKET VARCHAR(35),
+    REGION VARCHAR(35),
+    PRODUCT_ID STRING,
+    CATEGORY VARCHAR(40),
+    SUB_CATEGORY VARCHAR(40),
+    PRODUCT_NAME VARCHAR(300),
+    SALES NUMBER (10,2),
+    QUANTITY NUMBER(10,2),
+    DISCOUNT NUMBER (10,2),
+    PROFIT NUMBER (10,2),
+    SHIPPING_COST NUMBER (10,2),
+    ORDER_PRIORITY VARCHAR(35),
+    YEAR VARCHAR(10) );
+    
+DESCRIBE TABLE AK_SALES;
+SELECT * FROM AK_SALES;
+
+----------Change the Primary key to Order Id Column-----------
+ALTER TABLE AK_SALES
+DROP PRIMARY KEY;
+
+ALTER TABLE AK_SALES
+ADD PRIMARY KEY (ORDER_ID);
+
+--------Check the data type for Order date and Ship date and mention in what data type it should be?------------
+UPDATE AK_SALES
+SET ORDER_DATE = TO_DATE(ORDER_DATE),
+    SHIP_DATE = TO_DATE(SHIP_DATE);
+
+-------------Create a new column called order_extract and extract the number after the last ‘–‘ from Order ID column.--------------
+ALTER TABLE AK_SALES
+ADD COLUMN ORDER_EXTRACT INT;
+
+UPDATE AK_SALES
+SET ORDER_EXTRACT = SUBSTRING(ORDER_ID,'9','12');
+
+----------Create a new column called Discount Flag and categorize it based on discount Use ‘Yes’ if the discount is greater than zero else ‘No’.-------------
+ALTER TABLE AK_SALES
+ADD COLUMN DISCOUNT_FLAG VARCHAR(5);
+
+UPDATE AK_SALES
+SET DISCOUNT_FLAG = (CASE
+                    WHEN DISCOUNT > 0 THEN 'YES'
+                    ELSE 'NO'
+                    END);
+
+----------Create a new column called process days and calculate how many days it takes for each order id to process from the order to its shipment.------
+ALTER TABLE AK_SALES
+ADD COLUMN PROCESS_DAYS INT;
+
+UPDATE AK_SALES
+SET PROCESS_DAYS = DATEDIFF('DAY',ORDER_DATE,SHIP_DATE);
+SELECT * FROM AK_SALES;
+
+--------Create a new column called Rating and then based on the Process dates given rating like given below.-------------
+ALTER TABLE AK_SALES
+ADD COLUMN RATING INT;
+
+UPDATE AK_SALES
+SET RATING = (CASE
+             WHEN PROCESS_DAYS <=3 THEN 5
+             WHEN PROCESS_DAYS >3 AND PROCESS_DAYS <=6 THEN 4
+             WHEN PROCESS_DAYS >6 AND PROCESS_DAYS <=10 THEN 3
+             ELSE 2
+             END);
+             
+SELECT * FROM AK_SALES;            
